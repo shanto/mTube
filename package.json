@@ -1,0 +1,21 @@
+{
+  "name": "mtube-electron",
+  "productName": "mTube-Electron",
+  "description": "My Electron application description",
+  "icon": "",
+  "keywords": [],
+  "main": "./main.js",
+  "version": "1.0.0",
+  "author": "Shaan",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "@electron/build-tools": "^1.2.0",
+    "electron-builder": "^24.13.3",
+    "ytsr": "3.8.4"
+  },
+  "devDependencies": {
+    "electron": "^31.3.1"
+  }
+}
