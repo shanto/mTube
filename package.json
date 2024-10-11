@@ -1,21 +1,36 @@
 {
-  "name": "mtube-electron",
-  "productName": "mTube-Electron",
-  "description": "My Electron application description",
+  "name": "mtube",
+  "productName": "mTube",
+  "description": "Play multiple youtube videos from search results, typically news/LIVE streams, in a grid layout.",
   "icon": "",
   "keywords": [],
   "main": "./main.js",
   "version": "1.0.0",
   "author": "Shaan",
   "scripts": {
-    "start": "electron ."
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "dependencies": {
     "@electron/build-tools": "^1.2.0",
-    "electron-builder": "^24.13.3",
+    "crel": "^4.2.1",
+    "electron-preferences": "^2.8.2",
+    "electron-squirrel-startup": "^1.0.1",
+    "less": "^4.2.0",
+    "underscore": "^1.13.7",
     "ytsr": "3.8.4"
   },
   "devDependencies": {
-    "electron": "^31.3.1"
+    "@electron-forge/cli": "^7.4.0",
+    "@electron-forge/maker-deb": "^7.4.0",
+    "@electron-forge/maker-rpm": "^7.4.0",
+    "@electron-forge/maker-squirrel": "^7.4.0",
+    "@electron-forge/maker-zip": "^7.4.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.4.0",
+    "@electron-forge/plugin-fuses": "^7.4.0",
+    "@electron/fuses": "^1.8.0",
+    "electron": "^31.3.1",
+    "electron-icon-maker": "^0.0.5"
   }
 }

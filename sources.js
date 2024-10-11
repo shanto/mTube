@@ -1,32 +1,11 @@
 const ytsr = require("ytsr");
+const { preferences } = require("./prefs");
 
-const slots = 9;
-const query = [
-	"Jamuna TV",
-	"Independent TV",
-	"Barta24",
-	"Ekhon TV",
-	"DBC news",
-	"Channel 24",
-	"News24 BD",
-	"Somoy TV",
-	"Ekattor TV",
-	"Al-Jazeera",
-	"BBC News",
-].join(" | ");
+const slots = preferences.value('behaviour.video_cells');
+const query = preferences.value('source.keywords').join(" | ");
 const blacklist = {
 	ch_id: [],
-	ch_name: [
-		"APB ANANDA",
-		"Hindustan Times",
-		"Jamuna TV Plus",
-		"NDTV India",
-        "Jomuna Vision",
-		"TV9 Bangla",
-		"Zee 24 Ghanta",
-		"Zee News",
-        "WION"
-	],
+	ch_name: preferences.value('filter.blacklist_channels'),
 };
 
 const getSources = async () => {

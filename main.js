@@ -1,13 +1,36 @@
 // Grid layout YT viewer
 
-const { app, globalShortcut, ipcMain } = require("electron/main");
-const { GridWindow } = require("./custom");
+const { app, ipcMain } = require("electron/main");
+const { GridWindow } = require("./window");
 const { YtURL } = require("./utils");
 const path = require("node:path");
+const { preferences } = require("./prefs");
+const { getSources } = require("./sources");
+const { isEqual } = require("lodash");
+const { mainMenu } = require("./menu");
+const fs = require("node:fs");
 
-app.name = "mTube 3^2";
+app.name = "mTube";
 
-app.whenReady().then(() => {
+if (require("electron-squirrel-startup")) app.quit();
+
+let mainWindow;
+
+const initWindow = () => {
+	if (!mainWindow) {
+		mainWindow = createWindow();
+	}
+
+	getSources().then((sources) => {
+		mainWindow.initializeSources(sources);
+		mainWindow.maximize();
+		mainWindow.show();
+	});
+};
+
+app.whenReady().then(initWindow);
+
+const createWindow = () => {
 	const window = new GridWindow({
 		width: 1620,
 		height: 940,
@@ -15,44 +38,58 @@ app.whenReady().then(() => {
 		minHeight: 600,
 		resizable: true,
 		show: false,
+		setBackgroundColor: "black",
 		titleBarStyle: "hidden",
-		titleBarOverlay: true,
-		icon: path.join(__dirname, "youtube.png"),
+		titleBarOverlay: {
+			color: "#222",
+			symbolColor: "#999",
+			height: 30,
+		},
+		icon: path.join(__dirname, "icons", "icon"),
 	});
-	app.mainWindow = window;
 	window.setMenuBarVisibility(false);
-	window.setBackgroundColor("black");
-	window.setTitleBarOverlay({
-		color: "#333",
-		symbolColor: "white",
-		height: 38,
-	});
+	return window;
+};
 
-	const { getSources } = require("./sources");
-	getSources().then((sources) => {
-		window.initializeSources(sources);
-		window.show();
-		window.maximize();
-	});
+// GLOBAL (app) event handlers
 
-	globalShortcut.register("CommandOrControl+R", () => {
-		console.log("CommandOrControl+R is pressed");
+ipcMain.on("menu-preferences", () => {
+	const old_prefs = preferences.preferences;
+	preferences.show();
+	preferences.prefsWindow.once("close", () => {
+		if (isEqual(old_prefs, preferences.preferences)) return;
+		app.relaunch();
+		app.exit();
 	});
-
-	window;
 });
 
-app.on("window-all-closed", () => {
+ipcMain.on("menu-reload", () => {
+	mainWindow.reload();
+});
+
+ipcMain.on("menu-debug", (a, b, c) => {
+	mainWindow.contentView.children.forEach((child) => {
+		if (child.webContents.isFocused()) {
+			child.webContents.openDevTools();
+			return;
+		}
+	});
+});
+
+ipcMain.on("menu-restore-or-quit", () => {});
+
+ipcMain.on("window-all-closed", () => {
 	if (process.platform !== "darwin") {
 		app.quit();
 	}
 });
 
+// IPC (from sub views) event handlers:
+
 ipcMain.on("mouse", (event, data) => {
-	const window = app.mainWindow;
 	if (data.type == "mouseenter") {
-		window.lastActiveCell = event.sender.viewIndex;
-		window.setupAudio();
+		mainWindow.lastActiveCell = event.sender.viewIndex;
+		mainWindow.setupAudio();
 	}
 });
 
@@ -66,23 +103,46 @@ ipcMain.on("wheel", (event, data) => {
 });
 
 ipcMain.on("key", (event, data) => {
-	var window = app.mainWindow;
 	switch (data.key) {
 		case "Escape":
-			window.restoreOrQuit();
+		case "Q":
+			mainWindow.restoreOrQuit();
 			break;
 		case "F5":
-			window.reload();
+			mainWindow.reload();
 			break;
 	}
 });
 
-ipcMain.on("drop-youtube", (event, url) => {
-	const ytURL = new YtURL(url);
-	event.sender.loadURL(ytURL.embed());
-});
+ipcMain.on("view-index", (event) => {
+	event.returnValue = event.sender.viewIndex;
+})
 
 ipcMain.on("drop", (event, data) => {
-	const ytURL = new YtURL(data.url);
-	event.sender.loadURL(ytURL.embed());
+	var urls;
+	try {
+		urls = JSON.parse(data.text);
+		if(urls && urls.length == 2) {
+			try {
+				mainWindow.views[urls[0].idx].webContents.loadURL(YtURL.embed(urls[1].url))
+				mainWindow.views[urls[1].idx].webContents.loadURL(YtURL.embed(urls[0].url))
+			} catch(e) {
+				console.dir(data);
+				console.dir(event);
+			}
+			return;
+		}
+	} catch(e) {
+
+	}
+	
+	try {
+		event.sender.loadURL(ytURL.embed(data.url));
+	} catch (e) {
+		event.sender.loadURL(data.url);
+	}
+});
+
+ipcMain.on("read-css", async (event, file) => {
+	event.returnValue = fs.readFileSync(path.join(__dirname, file), "utf8").replaceAll(/[\r\n]+/g, " ");
 });

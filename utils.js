@@ -1,24 +1,33 @@
+const { _ } = require("underscore");
+const crel = require("crel");
+
 class YtURL {
-	hosts = ['www.youtube.com', 'youtube.com', 'www.youtu.be', 'youtu.be']
+	hosts = ["www.youtube.com", "youtube.com", "www.youtu.be", "youtu.be"];
 	constructor(url) {
 		const pu = new URL(url);
-		if(this.hosts.indexOf(pu.host) >= 0) {
-			this.origin = pu.origin.replace('http:', 'https:')
+		var match;
+		if (this.hosts.indexOf(pu.host) >= 0) {
+			this.origin = pu.origin.replace("http:", "https:");
 		}
-		if(pu.pathname == '/watch') {
-			this.id = pu.searchParams.get("v")
+		if (pu.pathname == "/watch") {
+			this.id = pu.searchParams.get("v");
 		}
-		if(!this.id || !this.origin) {
+		if (match = pu.pathname.match(/^\/embed\/([^\/]+)/)) {
+			this.id = match[1];
+		}
+		if (!this.id || !this.origin) {
 			console.log("Unable to parse URL: " + url);
 		}
 	}
-	embed(url) {
-		if(!this) {
-			var self = new YtURL(url)
-			return self.embed()
-		}
+	embed(url, params) {
+		params = params || "?autoplay=1";
 		return this.origin + "/embed/" + this.id;
 	}
+}
+
+YtURL.embed = function (url, params) {
+	var self = new YtURL(url);
+	return self.embed();
 }
 
 function stringifyEvent(e) {
@@ -37,4 +46,4 @@ function stringifyEvent(e) {
 	);
 }
 
-module.exports = { YtURL, stringifyEvent }
+module.exports = { YtURL, stringifyEvent };

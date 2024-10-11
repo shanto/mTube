@@ -1,0 +1,57 @@
+html {
+  background: rgba(50, 50, 50, 0.8);
+  height: 100%;
+}
+html:has(body.active) {
+  background: greenyellow;
+}
+body {
+  padding: 1px;
+  border: 1px solid rgba(0, 0, 0, 0);
+  box-sizing: border-box;
+}
+body.active:has(video) {
+  border-color: green;
+}
+body.active:has(video) > div.toolbar:not(.hidden) {
+  visibility: visible;
+}
+body > #player {
+  box-sizing: border-box;
+}
+div.toolbar {
+  visibility: hidden;
+  color: white;
+  position: absolute;
+  top: 20%;
+  right: 4%;
+  font-size: 20px;
+  bottom: 20%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: stretch;
+  text-align: center;
+  -webkit-user-select: none;
+  user-select: none;
+}
+div.toolbar > span.button {
+  z-index: 999;
+  cursor: pointer;
+  padding: 5px;
+  margin: 2px;
+  border-radius: 4px;
+  display: inline-block;
+  background: rgba(40, 40, 40, 0.5);
+  color: white;
+}
+div.toolbar > span.button:hover {
+  background-color: rgba(40, 40, 40, 0.9);
+}
+div.toolbar > span.button.dragging {
+  background-color: rgba(80, 40, 40, 0.9);
+}
+button.ytp-fullscreen-button {
+  display: none;
+}
